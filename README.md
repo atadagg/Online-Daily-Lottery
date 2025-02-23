@@ -16,6 +16,8 @@ Please comply with all local laws and regulations regarding gambling and lottery
 
 ---
 
+![Image][https://github.com/atadagg/Online-Daily-Lottery/blob/main/example_image.png]
+
 ## Features
 
 - User authentication and session management
