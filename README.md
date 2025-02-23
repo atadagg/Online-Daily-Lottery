@@ -1,23 +1,62 @@
 # Simple Daily Lottery App
 
-A straightforward daily lottery application where users can buy tickets and participate in daily draws. Built with Node.js, Express, and MySQL.
+## ⚠️ IMPORTANT DISCLAIMER
+
+This is a **purely educational project** created to demonstrate web development concepts and patterns. It is:
+
+- NOT a real lottery application
+- NEVER used for any actual gambling purposes
+- NOT intended for any commercial use
+- Created SOLELY for learning purposes
+- JUST a coding exercise
+
+I do not operate, have never operated, and do not intend to operate any lottery or gambling service. This is simply a programming demo showing how such systems might work technically.
+
+Please comply with all local laws and regulations regarding gambling and lottery operations. This code should not be used for any real-world gambling implementations.
+
+---
 
 ## Features
 
 - User authentication and session management
 - Daily lottery ticket purchases
 - Automatic daily draws
-- Winning number matching and payout system
-- Transaction history
-- Secure payment processing
+- Best ticket tracking
+- Session-based security
 
 ## Technical Stack
 
 - Backend: Node.js + Express
 - Database: MySQL
-- Session Management: express-session with MySQL store
-- Payment Processing: Stripe (in test mode)
+- Session Management: express-mysql-session
 - Frontend: HTML, CSS, JavaScript
+
+## Required Dependencies
+
+```json
+{
+  "dependencies": {
+    "bcrypt": "^5.x.x",
+    "cors": "^2.x.x",
+    "dotenv": "^16.x.x",
+    "express": "^4.x.x",
+    "express-session": "^1.x.x",
+    "mysql2": "^3.x.x",
+    "express-mysql-session": "^3.x.x"
+  }
+}
+```
+
+## Environment Variables
+
+Create a `.env` file with:
+```env
+DB_HOST=localhost
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=your_db_name
+SESSION_SECRET=your_secret_here
+```
 
 ## Database Schema
 
@@ -25,9 +64,8 @@ A straightforward daily lottery application where users can buy tickets and part
 -- Users table
 CREATE TABLE users (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  username VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL
 );
 
 -- Tickets table
@@ -36,141 +74,90 @@ CREATE TABLE tickets (
   user_id INT NOT NULL,
   numbers JSON NOT NULL,
   draw_date DATE NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Transactions table
-CREATE TABLE transactions (
+-- Daily draws table
+CREATE TABLE daily_draws (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id INT NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  status ENUM('pending', 'completed', 'failed') NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  draw_date DATE UNIQUE NOT NULL,
+  prize_pool DECIMAL(10,2) NOT NULL,
+  winning_numbers JSON
 );
 ```
-
-## Setup Instructions
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/lottery-app.git
-cd lottery-app
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables in `.env`:
-```env
-DB_HOST=localhost
-DB_USER=your_db_user
-DB_PASS=your_db_password
-DB_NAME=lottery_db
-SESSION_SECRET=your_session_secret
-STRIPE_TEST_KEY=your_stripe_test_key
-```
-
-4. Set up the database:
-```bash
-mysql -u root -p < setup/database.sql
-```
-
-5. Start the server:
-```bash
-npm start
-```
-
-## Configuration
-
-### Session Management
-Sessions are stored in MySQL using express-mysql-session. The session table is automatically created and managed.
-
-### Payment Processing
-Stripe is implemented in test mode. To process real payments:
-1. Apply for Stripe account approval
-2. Replace test keys with production keys
-3. Update webhook endpoints
 
 ## API Endpoints
 
 ### Authentication
-- POST /api/auth/register - Register new user
-- POST /api/auth/login - Login user
-- POST /api/auth/logout - Logout user
+- POST `/api/register` - Register new user
+  - Body: `{ username, password }`
+- POST `/api/login` - Login user
+  - Body: `{ username, password }`
+- POST `/api/logout` - Logout user
+- GET `/api/check-auth` - Check authentication status
 
-### Lottery
-- GET /api/lottery/current - Get current draw info
-- POST /api/lottery/buy - Buy new ticket
-- GET /api/lottery/tickets - Get user's tickets
-- GET /api/lottery/results - Get latest results
+### Lottery Operations
+- GET `/api/draw-info` - Get current and previous draw information
+  - Returns: current pool, previous payout, winning numbers, and best ticket
+- POST `/api/buy-ticket` - Buy a new ticket (requires auth)
+  - Automatically generates random numbers
+- GET `/api/tickets` - Get user's tickets for today's draw (requires auth)
 
-### Transactions
-- GET /api/transactions - Get user's transaction history
-- POST /api/transactions/create - Create new transaction
+## Setup Instructions
 
-## Business Logic
+1. Install dependencies:
+```bash
+npm install
+```
 
-### Ticket Purchase
-- Each ticket costs $2
-- Users can select numbers manually or get random numbers
-- Numbers range from 1-49
-- 6 numbers per ticket
+2. Set up environment variables in `.env`
 
-### Draw Schedule
-- Draws occur daily at midnight
-- Results are processed automatically
-- Winners are notified via email
+3. Create database tables using the schema above
 
-### Payout Structure
-- 6 numbers: Jackpot (accumulating)
-- 5 numbers: $5,000
-- 4 numbers: $100
-- 3 numbers: $10
+4. Start the server:
+```bash
+node server.js
+```
 
-## Security Measures
+The server will run on port 3000 by default.
+
+## Security Features
 
 - Password hashing using bcrypt
-- Session-based authentication
-- SQL injection protection
-- XSS protection
-- Rate limiting on API endpoints
+- Session-based authentication with MySQL store
+- CORS protection
+- HTTP-only cookies
+- Authentication middleware for protected routes
 
-## Development
+## Session Management
 
-To run in development mode:
-```bash
-npm run dev
-```
+Sessions are stored in MySQL using express-mysql-session with:
+- 24-hour expiration
+- Secure cookies in production
+- HTTP-only cookies
+- Automatic cleanup of expired sessions
 
-To run tests:
-```bash
-npm test
-```
+## Development Notes
 
-## Production Deployment
+- Server runs in development mode with permissive CORS
+- Session cookies are not secure in development
+- All origins are allowed in development mode
+- Database connections use connection pooling
 
-1. Update environment variables
-2. Enable secure cookies
-3. Set up SSL certificate
-4. Configure database backups
-5. Set up monitoring
+## Production Considerations
 
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+Before deploying to production:
+1. Set NODE_ENV to 'production'
+2. Configure strict CORS settings
+3. Enable secure cookies
+4. Set up proper SSL/TLS
+5. Configure proper database credentials
+6. Set up proper logging
 
 ## License
 
 MIT License - see LICENSE.md
 
-## Contact
+---
 
-For support or queries, reach out to [your-email@example.com]
+Remember: This is a demonstration project only. Not for actual gambling implementations.
