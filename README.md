@@ -16,6 +16,8 @@ Please comply with all local laws and regulations regarding gambling and lottery
 
 ---
 
+DEVELOPER NOTE: I HAVE NO IDEA WHY DID I MAKE THIS, I JUST WANTED TO MAKE SOMETHING BEFORE I WENT TO SLEEP AND THIS CAME OUT.
+
 ![Image](https://github.com/atadagg/Online-Daily-Lottery/blob/main/example_image.png)
 
 ## Features
